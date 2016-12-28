@@ -30,6 +30,12 @@ object Helios {
 
   def collocSuivante(titre : Titre) :Titre = {
     nbAppelsCollocSuivante += 1
+    if (titre.colloc.code == "") {
+      titre.colloc.rangDansLaPage = 0
+    } else {
+      titre.colloc.rangDansLaPage += 1
+    }
+    titre.code = ""
     if (listeTest.nonEmpty) {
       if (titre.colloc.code.nonEmpty) {
         enleveCollocTest
@@ -41,7 +47,6 @@ object Helios {
         titre.colloc.derniereColloc = false
       }
     }
-    titre.code = ""
     return titre
   }
 
@@ -104,7 +109,7 @@ object Helios {
         }
       }
       if (!titreEnCours.colloc.pasDeTitre) {
-        setDernierTitre(titreEnCours)
+        titreEnCours = setDernierTitre(titreEnCours)
         if (!SessionEnCours.titreDejaTraite(titreEnCours)) {
           titreEnCours = litTitre(titreEnCours)
           SessionEnCours.memoriseTitre(titreEnCours)
