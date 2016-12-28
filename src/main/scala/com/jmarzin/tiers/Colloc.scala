@@ -6,6 +6,7 @@ package main.scala.com.jmarzin.tiers
 class Colloc {
   var code : String = ""
   var derniereColloc = false
+  var pasDeTitre = false
   def Colloc(): Colloc = {
     return this
   }

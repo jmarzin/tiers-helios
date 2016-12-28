@@ -1,34 +1,35 @@
 package test.scala.com.jmarzin.tiers
 
-import groovy.transform.Trait
 import main.scala.com.jmarzin.tiers.{Colloc, SessionEnCours, Titre}
 import org.scalatest.{BeforeAndAfter, FunSpec, ShouldMatchers}
 
 /**
   * Created by jmarzin-cp on 25/12/2016.
   */
-class TestSession extends FunSpec with ShouldMatchers with BeforeAndAfter {
+class Session$Test extends FunSpec with ShouldMatchers with BeforeAndAfter {
 
   val colloc = new Colloc
   val titre = new Titre
   titre.colloc = colloc
   before {
-    SessionEnCours.listeCodesCollocs = List("1","2")
-    SessionEnCours.listeCodesTitres = List("1","2")
+    SessionEnCours.collocsTraitees = List("1")
+    SessionEnCours.collocEnCours ="2"
+    SessionEnCours.titresTraites = List("1","2")
   }
   describe("Une colloc mémorisée") {
     it ("se met à la fin de la liste et initialise la liste des titres") {
-      colloc.code = "3"
+      colloc.code = "2"
       SessionEnCours.memoriseColloc(colloc)
-      SessionEnCours.listeCodesCollocs should be (List("1","2","3"))
-      SessionEnCours.listeCodesTitres.isEmpty should be (true)
+      SessionEnCours.collocsTraitees should be (List("1","2"))
+      SessionEnCours.collocEnCours should be ("")
+      SessionEnCours.titresTraites.isEmpty should be (true)
     }
     it ("ne peut pas être mémorisée une 2ème fois") {
       colloc.code = "1"
       SessionEnCours.memoriseColloc(colloc)
-      SessionEnCours.listeCodesCollocs should be (List("1","2"))
+      SessionEnCours.collocsTraitees should be (List("1"))
     }
-    it ("est déjà traitée si elle n'est pas la dernière") {
+    it ("est déjà traitée si elle est dans la liste") {
       colloc.code = "1"
       SessionEnCours.collocDejaTraitee(colloc) should be (true)
       colloc.code = "2"
@@ -40,22 +41,23 @@ class TestSession extends FunSpec with ShouldMatchers with BeforeAndAfter {
       titre.colloc.code = "2"
       titre.code = "3"
       SessionEnCours.memoriseTitre(titre)
-      SessionEnCours.listeCodesTitres should be (List("1","2","3"))
+      SessionEnCours.titresTraites should be (List("1","2","3"))
     }
     it ("ne peut pas être mémorisée une 2ème fois") {
       titre.colloc.code = "2"
       titre.code = "1"
       SessionEnCours.memoriseTitre(titre)
-      SessionEnCours.listeCodesTitres should be (List("1","2"))
+      SessionEnCours.titresTraites should be (List("1","2"))
     }
     it ("memorise la collectivité et le titre si la collectivité n'est pas dans la liste") {
       titre.colloc.code = "3"
       titre.code = "4"
       SessionEnCours.memoriseTitre(titre)
-      SessionEnCours.listeCodesCollocs should be (List("1","2","3"))
-      SessionEnCours.listeCodesTitres should be (List("4"))
+      SessionEnCours.collocsTraitees should be (List("1","2"))
+      SessionEnCours.collocEnCours should be ("3")
+      SessionEnCours.titresTraites should be (List("4"))
     }
-    it ("est déjà traité s'il est de la dernière colloc et est dans la liste") {
+    it ("est déjà traité s'il est de la colloc en cours et est dans la liste") {
       titre.colloc.code = "2"
       titre.code = "1"
       SessionEnCours.titreDejaTraite(titre) should be (true)
@@ -71,8 +73,9 @@ class TestSession extends FunSpec with ShouldMatchers with BeforeAndAfter {
   describe("La remise à zéro") {
     it ("vide la liste des collocs et la liste des titres") {
       SessionEnCours.raz
-      SessionEnCours.listeCodesCollocs should be (List())
-      SessionEnCours.listeCodesTitres should be (List())
+      SessionEnCours.collocsTraitees should be (List())
+      SessionEnCours.collocEnCours should be ("")
+      SessionEnCours.titresTraites should be (List())
     }
   }
 }

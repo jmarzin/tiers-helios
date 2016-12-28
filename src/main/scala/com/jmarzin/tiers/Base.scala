@@ -6,8 +6,9 @@ package main.scala.com.jmarzin.tiers
 
 object Base {
   def init(repertoire: String) : Unit = {
-    SessionEnCours.listeCodesCollocs = List()
-    SessionEnCours.listeCodesTitres = List()
+    SessionEnCours.collocsTraitees = List()
+    SessionEnCours.collocEnCours =""
+    SessionEnCours.titresTraites = List()
   }
   def vide: Unit = {
     SessionEnCours.raz

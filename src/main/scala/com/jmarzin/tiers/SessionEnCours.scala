@@ -4,50 +4,46 @@ package main.scala.com.jmarzin.tiers
   * Created by jmarzin-cp on 24/12/2016.
   */
 object SessionEnCours {
-  var listeCodesCollocs: List[String] = List()
-  var listeCodesTitres: List[String] = List()
+  var collocsTraitees: List[String] = List()
+  var collocEnCours : String = ""
+  var titresTraites: List[String] = List()
 
   def raz: Unit = {
-    listeCodesCollocs = List()
-    listeCodesTitres = List()
+    collocsTraitees = List()
+    collocEnCours = ""
+    titresTraites = List()
   }
 
   def ? : Boolean = {
-    return true
-    return !(listeCodesCollocs.isEmpty)
+    return (collocsTraitees.nonEmpty || collocEnCours.nonEmpty || titresTraites.nonEmpty)
   }
 
   def collocDejaTraitee(colloc : Colloc) : Boolean = {
-    return listeCodesCollocs.exists(colloc.code ==) && !colloc.code.equals(listeCodesCollocs.last)
+    return collocsTraitees.contains(colloc.code)
   }
 
   def titreDejaTraite(titre : Titre) : Boolean = {
-    if (listeCodesCollocs.contains(titre.colloc.code)) {
-      if (listeCodesCollocs.last == titre.colloc.code) {
-        return listeCodesTitres.contains(titre.code)
-      } else {
-        return true
-      }
-    } else {
-      return false
-    }
+    return collocsTraitees.contains(titre.colloc.code) || (collocEnCours.equals(titre.colloc.code) && titresTraites.contains(titre.code))
   }
 
   def memoriseColloc(colloc : Colloc) : Unit = {
-    if (!listeCodesCollocs.exists(colloc.code ==)) {
-      listeCodesCollocs = listeCodesCollocs :+ colloc.code
-      listeCodesTitres = List()
+    if (!collocsTraitees.contains(colloc.code) && colloc.code.nonEmpty) {
+      collocsTraitees = collocsTraitees :+ colloc.code
+      collocEnCours = ""
+      titresTraites = List()
     }
   }
 
   def memoriseTitre(titre : Titre) : Unit = {
-    if (!listeCodesCollocs.last.equals(titre.colloc.code)) {
+    if (!collocEnCours.equals(titre.colloc.code)) {
+      val temp = titre.colloc.code
+      titre.colloc.code = collocEnCours
       memoriseColloc(titre.colloc)
-      listeCodesTitres = List(titre.code)
-    } else {
-      if (!listeCodesTitres.exists(titre.code ==)) {
-        listeCodesTitres = listeCodesTitres :+ titre.code
-      }
+      titre.colloc.code = temp
+      collocEnCours = titre.colloc.code
+    }
+    if (titre.code.nonEmpty && !titresTraites.contains(titre.code)) {
+      titresTraites = titresTraites :+ titre.code
     }
   }
 }
