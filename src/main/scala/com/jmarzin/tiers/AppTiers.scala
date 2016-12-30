@@ -9,9 +9,14 @@ import scala.swing.{BorderPanel, BoxPanel, Button, ButtonGroup, Label, MainFrame
 /**
   * Created by jmarzin-cp on 24/12/2016.
   */
-object tiers extends SimpleSwingApplication {
+object AppTiers extends SimpleSwingApplication {
 
   var threadHelios : Thread = null
+  var developpement = true
+  var finNormale = false
+  var stop = false
+  var plante = false
+  var nbTitresTraites = 0
 
   def afficheAvancement(x: Any): String = x match {
     case 0 => " "
@@ -21,7 +26,7 @@ object tiers extends SimpleSwingApplication {
 
   def top = new MainFrame {
 
-    Base.init("C:\\tiers\\titres")
+    Base.init("C:\\tiers\\restes")
 
     Helios.init
 
@@ -66,9 +71,16 @@ object tiers extends SimpleSwingApplication {
       if (threadHelios == null) {
         message.text = afficheAvancement(0)
       } else if (threadHelios.isAlive) {
-        message.text = afficheAvancement(Helios.nbTitresTraites)
-      } else {
-        message.text = "Hélios planté après " + afficheAvancement(Helios.nbTitresTraites)
+        message.text = afficheAvancement(nbTitresTraites)
+      } else if (finNormale) {
+        message.text = "Hélios terminé après " + afficheAvancement(nbTitresTraites)
+        bouton.text = "Quitter"
+      } else if (stop) {
+        message.text = "Hélios arrêté après " + afficheAvancement(nbTitresTraites)
+        bouton.text = "Quitter"
+      } else if (plante) {
+        message.text = "Hélios planté après "+ afficheAvancement(nbTitresTraites)
+        Helios.close
         bouton.text = "Quitter"
       }
     }
@@ -81,23 +93,30 @@ object tiers extends SimpleSwingApplication {
           recommencer.enabled = false
           if(recommencer.selected) {
             Base.vide
+            Fichier.init(false)
+          } else {
+            Fichier.init(true)
           }
           threadHelios = new Thread {
             override def run {
               try {
                 Helios.parcours
               } catch {
-                case _  => {
+                case e: Exception  => {
+                  plante = true
+                  finNormale = false
+                  println("Erreur " + e + e.getStackTrace.toString)
                 }
               }
             }
           }
           threadHelios.start
         } else if (bouton.text.equals("Arrêter")) {
-          Timer.stop
-          message.text = "Interrompu après " + afficheAvancement(Helios.nbTitresTraites)
-          bouton.text = "Quitter"
-          threadHelios.interrupt
+          stop = true
+          //Timer.stop
+          //message.text = "Interrompu après " + afficheAvancement(Helios.nbTitresTraites)
+          //bouton.text = "Quitter"
+          //threadHelios.interrupt
         } else if (bouton.text.equals("Quitter")) {
           sys.exit(0)
         }
