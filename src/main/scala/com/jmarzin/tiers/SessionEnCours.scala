@@ -23,11 +23,13 @@ object SessionEnCours {
   }
 
   def titreDejaTraite(titre : Titre) : Boolean = {
-    return collocsTraitees.contains(titre.colloc.code) || (collocEnCours.equals(titre.colloc.code) && titresTraites.contains(titre.code))
+    return Base.titreConnu(titre)
+    //collocsTraitees.contains(titre.colloc.code) || (collocEnCours.equals(titre.colloc.code) &&
+    //  titresTraites.contains(titre.code))
   }
 
   def memoriseColloc(colloc : Colloc) : Unit = {
-    if (!collocsTraitees.contains(colloc.code) && colloc.code.nonEmpty) {
+    if (!collocDejaTraitee(colloc) && !colloc.code.equals("")) {
       collocsTraitees = collocsTraitees :+ colloc.code
       collocEnCours = ""
       titresTraites = List()
@@ -42,7 +44,7 @@ object SessionEnCours {
       titre.colloc.code = temp
       collocEnCours = titre.colloc.code
     }
-    if (titre.code.nonEmpty && !titresTraites.contains(titre.code)) {
+    if (titre.code.nonEmpty && !titreDejaTraite(titre)) {
       titresTraites = titresTraites :+ titre.code
     }
   }

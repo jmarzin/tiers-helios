@@ -7,6 +7,8 @@ class Colloc {
   var code : String = ""
   var derniereColloc = false
   var pasDeTitre = false
+  var rangPage = 0
+  var rangDansLaPage = 0
   def Colloc(): Colloc = {
     return this
   }

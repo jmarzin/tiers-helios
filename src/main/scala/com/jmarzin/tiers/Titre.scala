@@ -7,8 +7,15 @@ class Titre {
   var dernierTitreDeLaColloc = false
   var colloc : Colloc = new Colloc
   var code = ""
+  var resteARecouvrerPrincipal = 0
+  var resteARecouvrerFrais = 0
+  var dateEmission = ""
+  var datePrescription = ""
+  var debiteur = new Debiteur
   var rangDansLaPage = 0
-  def Titre(): Titre = {
-    return this
-  }
+  var annee = ""
+  var bordereau = ""
+//  def Titre(): Titre = {
+//    return this
+//  }
 }
