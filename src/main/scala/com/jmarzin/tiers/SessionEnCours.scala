@@ -4,48 +4,77 @@ package main.scala.com.jmarzin.tiers
   * Created by jmarzin-cp on 24/12/2016.
   */
 object SessionEnCours {
-  var collocsTraitees: List[String] = List()
-  var collocEnCours : String = ""
+  var collocsTraiteesTitres: List[String] = List()
+  var collocEnCoursTitres : String = ""
   var titresTraites: List[String] = List()
+  var collocsTraiteesArticles: List[String] = List()
+  var collocEnCoursArticles : String = ""
+  var articlesTraites: List[String] = List()
 
-  def raz: Unit = {
-    collocsTraitees = List()
-    collocEnCours = ""
+  def raz(): Unit = {
+    collocsTraiteesTitres = List()
+    collocEnCoursTitres = ""
     titresTraites = List()
+    collocsTraiteesArticles = List()
+    collocEnCoursArticles = ""
+    articlesTraites = List()
   }
 
   def ? : Boolean = {
-    return (collocsTraitees.nonEmpty || collocEnCours.nonEmpty || titresTraites.nonEmpty)
+    collocsTraiteesTitres.nonEmpty ||
+      collocEnCoursTitres.nonEmpty ||
+      titresTraites.nonEmpty ||
+      collocsTraiteesArticles.nonEmpty ||
+      collocEnCoursArticles.nonEmpty ||
+      articlesTraites.nonEmpty
   }
 
-  def collocDejaTraitee(colloc : Colloc) : Boolean = {
-    return collocsTraitees.contains(colloc.code)
+  def collocDejaTraitee(typePiece: Symbol, colloc : Colloc) : Boolean = {
+    if(typePiece == 'titre)
+      collocsTraiteesTitres.contains(colloc.code)
+    else
+      collocsTraiteesArticles.contains(colloc.code)
   }
 
-  def titreDejaTraite(titre : Titre) : Boolean = {
-    return Base.titreConnu(titre)
-    //collocsTraitees.contains(titre.colloc.code) || (collocEnCours.equals(titre.colloc.code) &&
-    //  titresTraites.contains(titre.code))
-  }
-
-  def memoriseColloc(colloc : Colloc) : Unit = {
-    if (!collocDejaTraitee(colloc) && !colloc.code.equals("")) {
-      collocsTraitees = collocsTraitees :+ colloc.code
-      collocEnCours = ""
-      titresTraites = List()
+  def memoriseColloc(typePiece: Symbol, colloc : Colloc) : Unit = {
+    if (!collocDejaTraitee(typePiece, colloc) && !colloc.code.equals("")) {
+      if(typePiece == 'titre) {
+        collocsTraiteesTitres = collocsTraiteesTitres :+ colloc.code
+        collocEnCoursTitres = ""
+        titresTraites = List()
+      } else {
+        collocsTraiteesArticles = collocsTraiteesArticles :+ colloc.code
+        collocEnCoursArticles = ""
+        articlesTraites = List()
+      }
+      Base.sauveSession
     }
   }
 
-  def memoriseTitre(titre : Titre) : Unit = {
-    if (!collocEnCours.equals(titre.colloc.code)) {
-      val temp = titre.colloc.code
-      titre.colloc.code = collocEnCours
-      memoriseColloc(titre.colloc)
-      titre.colloc.code = temp
-      collocEnCours = titre.colloc.code
+  def memorisePiece(typePiece: Symbol, piece : Piece) : Unit = {
+    if (typePiece == 'titre) {
+      if (!collocEnCoursTitres.equals(piece.colloc.code)) {
+        val temp = piece.colloc.code
+        piece.colloc.code = collocEnCoursTitres
+        memoriseColloc('titre, piece.colloc)
+        piece.colloc.code = temp
+        collocEnCoursTitres = piece.colloc.code
+      }
+      if (piece.code.nonEmpty && !Base.pieceConnue(piece)) {
+        titresTraites = titresTraites :+ piece.code
+      }
+    } else {
+      if (!collocEnCoursArticles.equals(piece.colloc.code)) {
+        val temp = piece.colloc.code
+        piece.colloc.code = collocEnCoursArticles
+        memoriseColloc('role, piece.colloc)
+        piece.colloc.code = temp
+        collocEnCoursArticles = piece.colloc.code
+      }
+      if (piece.code.nonEmpty && !Base.pieceConnue(piece)) {
+        articlesTraites = articlesTraites :+ piece.code
+      }
     }
-    if (titre.code.nonEmpty && !titreDejaTraite(titre)) {
-      titresTraites = titresTraites :+ titre.code
-    }
+    Base.sauveSession
   }
 }

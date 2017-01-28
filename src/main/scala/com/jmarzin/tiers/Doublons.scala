@@ -7,7 +7,7 @@ object Doublons {
 
   def paquetParCode(vect: Vector[Item], dist: Vector[(String,String,Integer)]): Vector[(String,Vector[(String,Integer)])] = {
     AppTiers.nbDebiteurDoublons = 0
-    return for(v <- vect) yield {
+    for(v <- vect) yield {
       AppTiers.nbDebiteurDoublons += 1
       if (Thread.interrupted) return Vector(("",Vector(("",0))))
       val resfiltre = dist.filter(p => p._1 == v.code || p._2 == v.code)
@@ -22,7 +22,7 @@ object Doublons {
     }
   }
 
-  def cherche: Unit = {
+  def cherche(): Unit = {
     if (Thread.interrupted()) return
     val vecteur = Base.litTiers
     if (Thread.interrupted()) return
@@ -44,11 +44,6 @@ object Doublons {
     }).distinct.sorted
     if (Thread.interrupted) return
     Base.sauve(resFinalFlat)
-    if (Thread.interrupted) {
-      return
-    } else {
-      AppTiers.finNormale = true
-      return
-    }
+    if (!Thread.interrupted) AppTiers.finNormale = true
   }
 }

@@ -1,54 +1,52 @@
 package main.scala.com.jmarzin.tiers
 
-import javax.swing.JOptionPane._
-
-import org.openqa.selenium.firefox.FirefoxDriver
 
 /**
   * Created by jmarzin-cp on 24/12/2016.
   */
 object Helios extends HeliosFirefox {
 
-  def parcours : Unit = {
-    var titreEnCours = new Titre
-    titreEnCours.colloc = new Colloc
-    titreEnCours.dernierTitreDeLaColloc = true
-    titreEnCours.colloc.derniereColloc = true
+  def parcours(typePiece: Symbol) : Unit = {
+    init(typePiece)
+    var pieceEnCours = new Piece
+    pieceEnCours.colloc = new Colloc
+    pieceEnCours.dernierePieceDeLaColloc = true
+    pieceEnCours.colloc.derniereColloc = true
     do {
-      if (titreEnCours.dernierTitreDeLaColloc) {
-        SessionEnCours.memoriseColloc(titreEnCours.colloc)
-        titreEnCours = collocSuivante(titreEnCours)
-        if (SessionEnCours.collocDejaTraitee(titreEnCours.colloc)) {
-          titreEnCours.colloc.pasDeTitre = true
+      if (pieceEnCours.dernierePieceDeLaColloc) {
+        SessionEnCours.memoriseColloc(typePiece, pieceEnCours.colloc)
+        pieceEnCours = collocSuivante(pieceEnCours)
+        if (SessionEnCours.collocDejaTraitee(typePiece, pieceEnCours.colloc)) {
+          pieceEnCours.colloc.pasDePiece = true
         } else {
-          SessionEnCours.memoriseTitre(titreEnCours)
-          titreEnCours = premierTitreColloc(titreEnCours)
+          SessionEnCours.memorisePiece(typePiece, pieceEnCours)
+          pieceEnCours = premierePieceColloc(typePiece, pieceEnCours)
         }
-        if (titreEnCours.colloc.pasDeTitre) {
-          titreEnCours.dernierTitreDeLaColloc = true
+        if (pieceEnCours.colloc.pasDePiece) {
+          pieceEnCours.dernierePieceDeLaColloc = true
         } else {
-          titreEnCours.dernierTitreDeLaColloc = false
+          pieceEnCours.dernierePieceDeLaColloc = false
         }
       }
-      if (!titreEnCours.colloc.pasDeTitre) {
-        titreEnCours = setDernierTitre(titreEnCours)
-        if (!SessionEnCours.titreDejaTraite(titreEnCours)) {
-          titreEnCours = litTitre(titreEnCours)
-          SessionEnCours.memoriseTitre(titreEnCours)
-          Base.sauve(titreEnCours)
-          Fichier.sauve(titreEnCours)
-          AppTiers.nbTitresTraites += 1
+      if (!pieceEnCours.colloc.pasDePiece) {
+        pieceEnCours = setDernierTitre(typePiece, pieceEnCours)
+        if (!Base.pieceConnue(pieceEnCours)) {
+          pieceEnCours = litPiece(typePiece, pieceEnCours)
+          SessionEnCours.memorisePiece(typePiece, pieceEnCours)
+          Base.sauve(pieceEnCours)
+          Fichier.sauve(pieceEnCours)
+          AppTiers.nbPiecesTraites += 1
         }
-        if (!titreEnCours.dernierTitreDeLaColloc) {
-          titreEnCours = titreSuivantColloc(titreEnCours)
+        if (!pieceEnCours.dernierePieceDeLaColloc) {
+          pieceEnCours = titreSuivantColloc(typePiece,pieceEnCours)
         }
       }
-    } while ((!titreEnCours.dernierTitreDeLaColloc || !titreEnCours.colloc.derniereColloc) && !AppTiers.stop)
-    if (titreEnCours.dernierTitreDeLaColloc && titreEnCours.colloc.derniereColloc) {
+    } while ((!pieceEnCours.dernierePieceDeLaColloc || !pieceEnCours.colloc.derniereColloc) && !AppTiers.stop)
+    if (pieceEnCours.dernierePieceDeLaColloc && pieceEnCours.colloc.derniereColloc) {
       AppTiers.finNormale = true
-      SessionEnCours.memoriseColloc(titreEnCours.colloc)
+      SessionEnCours.memoriseColloc(typePiece, pieceEnCours.colloc)
       Base.sauveSession
     }
-    close
+    pageAccueil
   }
 }

@@ -21,36 +21,37 @@ object AppTiers extends SimpleSwingApplication {
   var finNormale = false
   var stop = false
   var plante = false
-  var nbTitresTraites = 0
+  var nbPiecesTraites = 0
   var nbDebiteursLus = -1
   var nbDebiteurDistances = -1
   var nbDebiteurDoublons = -1
   var nbDoublonsEcrits = -1
   var nbDoublonsAEcrire = -1
-  var nbTitresCollocEnCours = 0
-  var rangTitreCollocEnCours = 0
+  var nbPiecesCollocEnCours = 0
+  var rangPieceCollocEnCours = 0
   var collocEnCours = ""
+  var typePiece = 'titre
 
   def afficheAvancementHelios(x: Any): String = x match {
     case 0 => " "
-    case 1 => "1 titre traité"
-    case y: Int => y.toString + " titres traités"
+    case 1 => "1 pièce traitée"
+    case y: Int => y.toString + " " + "pièces traitées"
   }
 
   def afficheAvancementDoublons : (String,Integer) = {
     if (nbDoublonsEcrits >= 0) {
-      return ("" + nbDoublonsEcrits + "/" + nbDoublonsAEcrire + " propositions de doublons sauvegardées",
+      ("" + nbDoublonsEcrits + "/" + nbDoublonsAEcrire + " propositions de doublons sauvegardées",
         nbDoublonsEcrits*100/nbDoublonsAEcrire)
     } else if (nbDebiteurDoublons >= 0) {
-      return ("propositions construites pour " + nbDebiteurDoublons + "/" + nbDebiteursLus + " débiteurs",
+      ("propositions construites pour " + nbDebiteurDoublons + "/" + nbDebiteursLus + " débiteurs",
         nbDebiteurDoublons*100/nbDebiteursLus)
     } else if (nbDebiteurDistances >= 0) {
-      return ("distances calculées pour " + nbDebiteurDistances + "/" + nbDebiteursLus + " débiteurs",
+      ("distances calculées pour " + nbDebiteurDistances + "/" + nbDebiteursLus + " débiteurs",
         nbDebiteurDistances*100/nbDebiteursLus)
     } else if (nbDebiteursLus >= 0) {
-      return ("" + nbDebiteursLus + " débiteurs lus",0)
+      ("" + nbDebiteursLus + " débiteurs lus",0)
     } else {
-      return (" ",0)
+      (" ",0)
     }
   }
 
@@ -59,6 +60,7 @@ object AppTiers extends SimpleSwingApplication {
     private def prevenirUneFois = {
       if (bouton.text != "Quitter") java.awt.Toolkit.getDefaultToolkit().beep
     }
+
 
     Base.init("C:\\tiers\\restes")
 
@@ -73,7 +75,7 @@ object AppTiers extends SimpleSwingApplication {
     val radios = List(reprendre, recommencer,chercherDoublons)
     mutex.buttons ++= radios
     if (SessionEnCours.?) {
-      if (SessionEnCours.titresTraites == List()) {
+      if (SessionEnCours.titresTraites == List() && SessionEnCours.articlesTraites == List()) {
         recommencer.enabled = false
         mutex.select(chercherDoublons)
       } else {
@@ -120,42 +122,43 @@ object AppTiers extends SimpleSwingApplication {
 
     Timer(1000) {
       if (threadHelios == null) {
-        if (finNormale) {
-          progression.value = 0
-          prevenirUneFois
-          message.text = "Recherche des doublons terminée"
-          bouton.text = "Quitter"
-        } else if (stop) {
-          threadDoublons.interrupt
-          prevenirUneFois
-          message.text = "Recherche des doublons arrêtée"
-          bouton.text = "Quitter"
-          stop = false
-        } else {
+        if (!finNormale && !stop) {
           val pair = afficheAvancementDoublons
           message.text = pair._1
           progression.value = pair._2
+        } else {
+          var libelle = ""
+          if (finNormale) {
+            progression.value = 0
+            libelle = "terminée"
+          } else {
+            stop = false
+            threadDoublons.interrupt()
+            libelle = "arrêtée"
+          }
+          prevenirUneFois
+          message.text = "Recherche des doublons " + libelle
+          bouton.text = "Quitter"
         }
       } else if (threadHelios.isAlive) {
-        progression.label = SessionEnCours.collocEnCours
+        if(typePiece == 'titre)
+          progression.label = SessionEnCours.collocEnCoursTitres
+        else
+          progression.label = SessionEnCours.collocEnCoursArticles
         progression.labelPainted = true
-        if (nbTitresCollocEnCours == 0) {
+        if (nbPiecesCollocEnCours == 0) {
           progression.value = 0
         } else {
-          progression.value = rangTitreCollocEnCours*100/nbTitresCollocEnCours
+          progression.value = rangPieceCollocEnCours*100/nbPiecesCollocEnCours
         }
-        message.text = afficheAvancementHelios(nbTitresTraites)
-      } else if (finNormale) {
+        message.text = afficheAvancementHelios(nbPiecesTraites)
+      } else {
+        var libelle = ""
+        if (finNormale) libelle = "terminé"
+        else if (stop) libelle = "arrêté"
+        else if(plante) libelle = "planté"
         prevenirUneFois
-        message.text = "Hélios terminé après " + afficheAvancementHelios(nbTitresTraites)
-        bouton.text = "Quitter"
-      } else if (stop) {
-        prevenirUneFois
-        message.text = "Hélios arrêté après " + afficheAvancementHelios(nbTitresTraites)
-        bouton.text = "Quitter"
-      } else if (plante) {
-        prevenirUneFois
-        message.text = "Hélios planté après "+ afficheAvancementHelios(nbTitresTraites)
+        message.text = "Hélios " + libelle + " après " + afficheAvancementHelios(nbPiecesTraites)
         Helios.close
         bouton.text = "Quitter"
       }
@@ -185,15 +188,19 @@ object AppTiers extends SimpleSwingApplication {
             Helios.init
             threadHelios = new Thread {
               override def run {
-//                try {
-                  Helios.parcours
-//                } catch {
-//                  case e: Exception => {
-//                    plante = true
-//                    finNormale = false
-//                    println("Erreur " + e + e.getStackTrace.toString)
-//                  }
-//                }
+                try {
+                  typePiece = 'article
+                  Helios.parcours(typePiece)
+                  typePiece = 'titre
+                  Helios.parcours(typePiece)
+                  Helios.close()
+                } catch {
+                  case e: Exception => {
+                    plante = true
+                    finNormale = false
+                    println("Erreur " + e + e.getStackTrace.toString)
+                  }
+                }
               }
             }
             threadHelios.start

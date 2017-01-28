@@ -28,5 +28,10 @@ class Debiteur {
   var codeActualite = ""
   var dateMiseAJour = ""
   var nfp = ""
+  var nomRsEmployeur = ""
+  var cpVilleEmployeur = ""
+  var nomRsCaf = ""
+  var cpVilleCaf = ""
+  var numAllocataireCaf = ""
   var adresse = new Adresse
 }
