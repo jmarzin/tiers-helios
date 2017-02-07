@@ -1,32 +1,31 @@
 package main.scala.com.jmarzin.tiers
 
 import java.awt.{Color, Point}
-
-import specs2.text
-import sun.awt.resources.awt
+import java.io.File
+import javax.swing.{JOptionPane, JTextField}
 
 import scala.swing.BorderPanel.Position._
 import scala.swing.event.ButtonClicked
 import scala.swing.{BorderPanel, BoxPanel, Button, ButtonGroup, Dimension, Label, MainFrame, Orientation, ProgressBar, RadioButton, SimpleSwingApplication}
-import scalaz.Digit.{_1, _2}
 
 /**
   * Created by jmarzin-cp on 24/12/2016.
   */
 object AppTiers extends SimpleSwingApplication {
 
-  var threadHelios : Thread = null
-  var threadDoublons : Thread = null
-  var developpement = false
+  var poste = ""
+  var threadHelios : Thread = _
+  var threadDoublons : Thread = _
+  val developpement = false
   var finNormale = false
   var stop = false
   var plante = false
   var nbPiecesTraites = 0
-  var nbDebiteursLus = -1
-  var nbDebiteurDistances = -1
-  var nbDebiteurDoublons = -1
-  var nbDoublonsEcrits = -1
-  var nbDoublonsAEcrire = -1
+  var nbDebiteursLus: Int = -1
+  var nbDebiteurDistances: Int = -1
+  var nbDebiteurDoublons: Int = -1
+  var nbDoublonsEcrits: Int = -1
+  var nbDoublonsAEcrire: Int = -1
   var nbPiecesCollocEnCours = 0
   var rangPieceCollocEnCours = 0
   var collocEnCours = ""
@@ -55,14 +54,23 @@ object AppTiers extends SimpleSwingApplication {
     }
   }
 
+  val champPoste = new JTextField()
+  champPoste.hasFocus()
+  val okCxl: Int = JOptionPane.showConfirmDialog(null, champPoste, "Nom du poste", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
+  if (okCxl == JOptionPane.OK_OPTION) {
+    poste = champPoste.getText.replaceAll(" ","")
+  } else {
+    throw new IllegalArgumentException
+  }
+
   def top = new MainFrame {
 
-    private def prevenirUneFois = {
-      if (bouton.text != "Quitter") java.awt.Toolkit.getDefaultToolkit().beep
+    private def prevenirUneFois() = {
+      if (bouton.text != "Quitter") java.awt.Toolkit.getDefaultToolkit.beep()
     }
 
 
-    Base.init("C:\\tiers\\restes")
+    Base.init("C:/tiers/restes"+"_"+poste)
 
     title = "Récupération des RAR"
     location = new Point(1000,0)
@@ -136,7 +144,7 @@ object AppTiers extends SimpleSwingApplication {
             threadDoublons.interrupt()
             libelle = "arrêtée"
           }
-          prevenirUneFois
+          prevenirUneFois()
           message.text = "Recherche des doublons " + libelle
           bouton.text = "Quitter"
         }
@@ -157,9 +165,9 @@ object AppTiers extends SimpleSwingApplication {
         if (finNormale) libelle = "terminé"
         else if (stop) libelle = "arrêté"
         else if(plante) libelle = "planté"
-        prevenirUneFois
+        prevenirUneFois()
         message.text = "Hélios " + libelle + " après " + afficheAvancementHelios(nbPiecesTraites)
-        Helios.close
+        Helios.close()
         bouton.text = "Quitter"
       }
     }
@@ -173,42 +181,42 @@ object AppTiers extends SimpleSwingApplication {
           chercherDoublons.enabled = false
           if(chercherDoublons.selected) {
             threadDoublons = new Thread {
-              override def run: Unit = {
-                Doublons.cherche
+              override def run(): Unit = {
+                Doublons.cherche()
               }
             }
-            threadDoublons.start
+            threadDoublons.start()
           } else {
             if (recommencer.selected) {
-              Base.vide
-              Fichier.init(false)
+              Base.vide()
+              Fichier.init("c:\\tiers\\titres_" + poste + ".csv", ajout = false)
             } else {
-              Fichier.init(true)
+              Fichier.init("c:\\tiers\\titres_" + poste + ".csv", ajout =true)
             }
-            Helios.init
+            System.setProperty("webdriver.firefox.bin", "D:\\firefox31\\firefox.exe")
+            Helios.init()
             threadHelios = new Thread {
-              override def run {
-                try {
+              override def run() {
+                //try {
                   typePiece = 'article
                   Helios.parcours(typePiece)
                   typePiece = 'titre
                   Helios.parcours(typePiece)
                   Helios.close()
-                } catch {
-                  case e: Exception => {
-                    plante = true
-                    finNormale = false
-                    println("Erreur " + e + e.getStackTrace.toString)
-                  }
-                }
+                //} catch {
+                //  case e: Exception =>
+                //    plante = true
+                //    finNormale = false
+                //    println("Erreur " + e + e.getStackTrace.toString)
+                //}
               }
             }
-            threadHelios.start
+            threadHelios.start()
           }
         } else if (bouton.text.equals("Arrêter")) {
           stop = true
         } else if (bouton.text.equals("Quitter")) {
-          Base.ferme
+          Base.connexion.close()
           sys.exit(0)
         }
     }

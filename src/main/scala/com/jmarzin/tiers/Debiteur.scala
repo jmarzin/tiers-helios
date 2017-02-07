@@ -1,7 +1,5 @@
 package main.scala.com.jmarzin.tiers
 
-import specs2.text
-
 /**
   * Created by jmarzin-cp on 28/12/2016.
   */
@@ -33,5 +31,5 @@ class Debiteur {
   var nomRsCaf = ""
   var cpVilleCaf = ""
   var numAllocataireCaf = ""
-  var adresse = new Adresse
+  val adresse = new Adresse
 }

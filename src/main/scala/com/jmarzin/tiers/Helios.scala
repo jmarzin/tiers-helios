@@ -8,7 +8,7 @@ object Helios extends HeliosFirefox {
 
   def parcours(typePiece: Symbol) : Unit = {
     init(typePiece)
-    var pieceEnCours = new Piece
+    var pieceEnCours: Piece = new Piece
     pieceEnCours.colloc = new Colloc
     pieceEnCours.dernierePieceDeLaColloc = true
     pieceEnCours.colloc.derniereColloc = true
@@ -29,8 +29,8 @@ object Helios extends HeliosFirefox {
         }
       }
       if (!pieceEnCours.colloc.pasDePiece) {
-        pieceEnCours = setDernierTitre(typePiece, pieceEnCours)
-        if (!Base.pieceConnue(pieceEnCours)) {
+        pieceEnCours = setDernierePiece(typePiece, pieceEnCours)
+        if (!SessionEnCours.pieceDejaTraitee(typePiece, pieceEnCours) && !(pieceEnCours.etat == "ANNUL")) {
           pieceEnCours = litPiece(typePiece, pieceEnCours)
           SessionEnCours.memorisePiece(typePiece, pieceEnCours)
           Base.sauve(pieceEnCours)
@@ -38,15 +38,15 @@ object Helios extends HeliosFirefox {
           AppTiers.nbPiecesTraites += 1
         }
         if (!pieceEnCours.dernierePieceDeLaColloc) {
-          pieceEnCours = titreSuivantColloc(typePiece,pieceEnCours)
+          pieceEnCours = pieceSuivanteColloc(typePiece,pieceEnCours)
         }
       }
     } while ((!pieceEnCours.dernierePieceDeLaColloc || !pieceEnCours.colloc.derniereColloc) && !AppTiers.stop)
     if (pieceEnCours.dernierePieceDeLaColloc && pieceEnCours.colloc.derniereColloc) {
       AppTiers.finNormale = true
       SessionEnCours.memoriseColloc(typePiece, pieceEnCours.colloc)
-      Base.sauveSession
+      Base.sauveSession()
     }
-    pageAccueil
+    pageAccueil()
   }
 }

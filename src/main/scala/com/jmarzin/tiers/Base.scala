@@ -1,12 +1,6 @@
 package main.scala.com.jmarzin.tiers
 
 import java.sql._
-
-import main.scala.com.jmarzin.tiers
-import org.openqa.selenium.SessionNotCreatedException
-import specs2.text
-
-import scalaz.std.effect.sql.statement
 import util.control.Breaks._
 
 /**
@@ -14,15 +8,19 @@ import util.control.Breaks._
   */
 
 object Base {
-  val connexion = DriverManager.getConnection("jdbc:sqlite:C:/tiers/restes.db")
-  val ordreSql = connexion.createStatement
+  var connexion: Connection = _
+  var ordreSql: Statement = _
 
-  def init(repertoire: String) : Unit = {
+  def init(base: String) : Unit = {
+    connexion = DriverManager.getConnection("jdbc:sqlite:"+base+".db")
+    ordreSql = connexion.createStatement
     SessionEnCours.collocsTraiteesTitres = List()
     SessionEnCours.collocEnCoursTitres =""
+    SessionEnCours.pageTitres = ""
     SessionEnCours.titresTraites = List()
     SessionEnCours.collocsTraiteesArticles = List()
     SessionEnCours.collocEnCoursArticles =""
+    SessionEnCours.pageArticles = ""
     SessionEnCours.articlesTraites = List()
     Class.forName("org.sqlite.JDBC")
     var rs = ordreSql.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='debiteur';")
@@ -53,16 +51,19 @@ object Base {
       ordreSql.executeUpdate(
         "create table session " +
           "(collocsTraiteesTitres text, collocTitresEnCours text, titresTraites text, " +
-          "collocsTraiteesArticles text, collocArticlesEnCours text, articlesTraites text)")
+          "collocsTraiteesArticles text, collocArticlesEnCours text, articlesTraites text, " +
+          "pageTitres text, pageArticles text)")
     }
     rs = ordreSql.executeQuery("SELECT * FROM session;")
     if (!rs.next) {
-      ordreSql.executeUpdate("insert into session values('','','','','','');")
+      ordreSql.executeUpdate("insert into session values('','','','','','','','');")
       SessionEnCours.collocsTraiteesTitres = List()
       SessionEnCours.collocEnCoursTitres = ""
+      SessionEnCours.pageTitres = ""
       SessionEnCours.titresTraites = List()
       SessionEnCours.collocsTraiteesArticles = List()
       SessionEnCours.collocEnCoursArticles = ""
+      SessionEnCours.pageArticles = ""
       SessionEnCours.articlesTraites = List()
     } else {
       var liste = rs.getString(1)
@@ -79,18 +80,20 @@ object Base {
       liste = rs.getString(6)
       SessionEnCours.articlesTraites = liste.substring(5,liste.length-1).split(",").
         toList.filter(p => p != "" && p != " ").map(_.trim)
+      SessionEnCours.pageTitres = rs.getString(7)
+      SessionEnCours.pageArticles = rs.getString(8)
     }
   }
 
-  def vide: Unit = {
-    SessionEnCours.raz
+  def vide(): Unit = {
+    SessionEnCours.raz()
     ordreSql.execute("DELETE FROM debiteur;")
     ordreSql.execute("DELETE FROM titre;")
     ordreSql.execute("DELETE FROM adresse;")
     ordreSql.execute("DELETE FROM session;")
   }
 
-  def sauveSession = {
+  def sauveSession(): Unit = {
     ordreSql.executeUpdate("DELETE FROM session")
     val chaine = "insert into session values('" +
       SessionEnCours.collocsTraiteesTitres.toString + "','" +
@@ -98,7 +101,9 @@ object Base {
       SessionEnCours.titresTraites.toString + "','" +
       SessionEnCours.collocsTraiteesArticles.toString + "','" +
       SessionEnCours.collocEnCoursArticles + "','" +
-      SessionEnCours.articlesTraites.toString + "');"
+      SessionEnCours.articlesTraites.toString + "','" +
+      SessionEnCours.pageTitres + "','" +
+      SessionEnCours.pageArticles + "');"
     ordreSql.executeUpdate(chaine)
   }
 
@@ -137,7 +142,7 @@ object Base {
         piece.debiteur.adresse.pays + "');"
       print ("\r\n" + chaine)
       ordreSql.executeUpdate(chaine)
-      var id = ordreSql.executeQuery("SELECT last_insert_rowid();;").getInt(1)
+      val id = ordreSql.executeQuery("SELECT last_insert_rowid();;").getInt(1)
       chaine = "insert into debiteur values('" +
         piece.debiteur.identifiant + "','" + piece.debiteur.listeConsolidation + "','" +
         piece.debiteur.consolide + "','" + piece.debiteur.dateConsolidation + "','" +
@@ -183,16 +188,12 @@ object Base {
         if (item.code != "" && item.texte != "") vect = vect :+ item
       }
     }
-    return Vecteur(vect)
+    Vecteur(vect)
   }
 
-  def pieceConnue(titre: Piece): Boolean = {
+  def pieceConnue(piece: Piece): Boolean = {
     val rs = ordreSql.executeQuery("select * from titre where codeColloc = '" +
-    titre.colloc.code + "' and code = '" + titre.code +"';")
-    return rs.next()
-  }
-
-  def ferme: Unit = {
-    connexion.close
+    piece.colloc.code + "' and code = '" + piece.code +"';")
+    rs.next()
   }
 }

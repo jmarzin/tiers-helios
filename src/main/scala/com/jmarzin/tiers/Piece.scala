@@ -7,6 +7,8 @@ class Piece {
   var dernierePieceDeLaColloc = false
   var colloc : Colloc = new Colloc
   var code = ""
+  var etat = ""
+  var page = ""
   var resteARecouvrerPrincipal = 0
   var resteARecouvrerFrais = 0
   var dateEmission = ""

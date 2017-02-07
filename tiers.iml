@@ -10,5 +10,9 @@
     <orderEntry type="library" name="scala-sdk-2.11.7 (2)" level="application" />
     <orderEntry type="library" name="au.com.dius:pact-jvm-provider-scalatest_2.11:3.3.3" level="project" />
     <orderEntry type="library" name="org.scalamock:scalamock-specs2-support_2.11:3.1.1" level="project" />
+    <orderEntry type="library" name="org.seleniumhq.selenium:selenium-firefox-driver:2.46.0" level="project" />
+    <orderEntry type="library" name="org.xerial:sqlite-jdbc:3.8.11.1" level="project" />
+    <orderEntry type="library" name="org.seleniumhq.selenium:selenium-support:2.44.0" level="project" />
+    <orderEntry type="library" name="org.seleniumhq.selenium:selenium-firefox-driver:2.44.0" level="project" />
   </component>
 </module>

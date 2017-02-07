@@ -7,8 +7,8 @@ import java.io.{File, FileOutputStream, PrintWriter}
   */
 object Fichier {
   var pw:PrintWriter = _
-  def init(ajout:Boolean) : Unit = {
-    pw = new PrintWriter(new FileOutputStream(new File("C:\\tiers\\titres.csv"),ajout))
+  def init(fichier: String, ajout:Boolean) : Unit = {
+    pw = new PrintWriter(new FileOutputStream(new File(fichier),ajout))
     if (!ajout) {
       pw.println(
         "CCode|TDateEmission|TIdentifiant|TResteARecouvrerPrincipal|TResteARecouvrerFrais|" +
