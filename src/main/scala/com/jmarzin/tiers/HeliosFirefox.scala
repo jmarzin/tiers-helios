@@ -36,7 +36,8 @@ trait HeliosFirefox extends FirefoxDriver{
   def init() : Unit = {
     manage().timeouts().implicitlyWait(60, TimeUnit.SECONDS)
     get("http://ulysse.dgfip")
-    attends() //Thread.sleep(500)
+    attends()
+    Thread.sleep(500)
     var utilisateur = ""
     var password = ""
     if (!AppTiers.developpement) {
@@ -69,7 +70,7 @@ trait HeliosFirefox extends FirefoxDriver{
       pwd.sendKeys(password)
       findElement(By.className("valid")).clickw()
     }
-    //findElement(By.className("nom_appli"))
+    findElement(By.className("nom_appli"))
     if (!getPageSource.contains("http://helios.appli.impots")) {
       throw new WebDriverException()
     }
@@ -80,9 +81,11 @@ trait HeliosFirefox extends FirefoxDriver{
     switchTo().defaultContent
     new WebDriverWait(this, 10)
         .until(ExpectedConditions.presenceOfElementLocated(By.name("frmWork")))
-    attends() //findElement(By.tagName("FRAME"))
+    attends()
+    findElement(By.tagName("FRAME"))
     switchTo().frame("frmMenu")
-    attends() //findElementByTagName("LINK")
+    attends()
+    findElementByTagName("LINK")
     if(typePiece == 'titre)
       executeScript("m.go('172')")
     else
@@ -112,7 +115,7 @@ trait HeliosFirefox extends FirefoxDriver{
       attends()
       for(_ <- 1 to piece.colloc.rangPage){
         findElementByXPath("//input[@value='>>']").clickw()
-        //findElementByXPath("//tr[@idx]//a")
+        findElementByXPath("//tr[@idx]//a")
       }
     }
     //Thread.sleep(500)
@@ -123,7 +126,7 @@ trait HeliosFirefox extends FirefoxDriver{
     if (piece.colloc.rangDansLaPage == colbuds.size - 1) {
       if (getPageSource.contains("value=\"&gt;&gt;\"")) {
         findElementByXPath("//input[@value='>>']").clickw()
-        //findElementByXPath("//tr[@idx]//a")
+        findElementByXPath("//tr[@idx]//a")
         piece.colloc.rangPage += 1
         piece.colloc.rangDansLaPage = -1
       } else {
@@ -151,7 +154,7 @@ trait HeliosFirefox extends FirefoxDriver{
     switchTo.window(handles(handles.length - 1).toString)
     switchTo().frame("frmWork")
     findElementByClassName("inputreset").clickw()
-    //findElementByClassName("inputreset")
+    findElementByClassName("inputreset")
     findElementById("_1").clear()
     findElementById("_1").sendKeys(piece.colloc.code)
     if(typePiece == 'titre) {
@@ -166,7 +169,7 @@ trait HeliosFirefox extends FirefoxDriver{
         findElementByName("RCE_CT_F07_CriteresRecherche_CAF.#piecesNonSoldees-checkbox").click()
       }
       findElementByClassName("inputvalider").clickw()
-      //findElementByClassName("inputvalider")
+      findElementByClassName("inputvalider")
       if (getPageSource.contains("total  0 titre")) {
         piece.code = ""
         piece.rangDansLaPage = -1
@@ -198,7 +201,7 @@ trait HeliosFirefox extends FirefoxDriver{
     } else {
       findElementByClassName("box").click()
       findElementByClassName("inputvalider").clickw()
-      //findElementByClassName("inputvalider")
+      findElementByClassName("inputvalider")
       if (getPageSource.contains("total 0 article")) {
         piece.code = ""
         piece.rangDansLaPage = -1
@@ -236,7 +239,8 @@ trait HeliosFirefox extends FirefoxDriver{
 
   def setDernierePiece(typePiece: Symbol, piece: Piece) : Piece = {
 
-    attends() //findElementByClassName("inputreset")
+    attends()
+    findElementByClassName("inputreset")
     val boutonsDetail = findElementsByXPath("//input[@value='Détail'][@name='OID']")
     piece.dernierePieceDeLaColloc = false
     if (piece.rangDansLaPage == boutonsDetail.size - 1 && !getPageSource.contains("value=\"&gt;&gt;\"")) {
@@ -285,12 +289,13 @@ trait HeliosFirefox extends FirefoxDriver{
   }
 
   def litDebiteur(piece : Piece): Unit = {
-    attends() //findElementByXPath("//input[@value='Retour']")
+    attends() //
+    findElementByXPath("//input[@value='Retour']")
     val boutonsDetail = findElementsByXPath("//input[@value='Détail']")
     piece.debiteur.identifiant = findElementByXPath("//input[@value='Détail']/parent::*/preceding-sibling::td[1]").
       getText.replaceAll("'","").trim
     boutonsDetail.get(1).clickw()
-    //findElementByXPath("//input[@value='Retour']")
+    findElementByXPath("//input[@value='Retour']")
     piece.debiteur.categorie = findElementByXPath("//td[label='Catégorie']/following-sibling::td[1]").
       getText.replaceAll("'"," ").trim
     piece.debiteur.natureJuridique = findElementByXPath("//td[label='Nature juridique']/following-sibling::td[1]").
@@ -417,7 +422,7 @@ trait HeliosFirefox extends FirefoxDriver{
       //TODO traiter le cas où le lien Tiers débiteur n'existe pas
       findElementByXPath("//input[@value='Retour']").clickw()
     }
-    //findElementByXPath("//input[@value='Détail'][@name='OID']")
+    findElementByXPath("//input[@value='Détail'][@name='OID']")
     print("\r\nTitre "+ piece.code)
     if (piece.dernierePieceDeLaColloc) {
       print(" dernier")
@@ -434,7 +439,7 @@ trait HeliosFirefox extends FirefoxDriver{
     if (piece.rangDansLaPage > boutonsDetail.size - 1) {
       if (getPageSource.contains("value=\"&gt;&gt;\"")) {
         findElementByXPath("//input[@value='>>']").clickw()
-        //findElementByXPath("//input[@value='Détail']")
+        findElementByXPath("//input[@value='Détail']")
         piece.rangDansLaPage = 0
       }
     }
