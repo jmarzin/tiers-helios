@@ -1,6 +1,8 @@
 package main.scala.com.jmarzin.tiers
 
 import java.sql._
+
+import scala.collection.mutable.ArrayBuffer
 import util.control.Breaks._
 
 /**
@@ -107,21 +109,21 @@ object Base {
     ordreSql.executeUpdate(chaine)
   }
 
-  def sauve(res: Vector[Triplet]) : Unit = {
+  def sauve(res: Vector[(Integer, Integer, Integer)]) : Unit = {
     ordreSql.executeUpdate(
       "create table if not exists doublon" +
-        "(id1 text, " + "id2 text, " + "distance int, " + "statut text)")
+        "(rowId1 int, " + "rowId2 int, " + "distance int, " + "statut text)")
     ordreSql.executeUpdate(
-      "create unique index if not exists id1Id2 on doublon (id1, id2)")
+      "create unique index if not exists id1Id2 on doublon (rowId1, rowId2)")
     AppTiers.nbDoublonsEcrits = 0
     AppTiers.nbDoublonsAEcrire = res.size
     for(triplet <- res) {
       if (Thread.interrupted) return
-      val rs = ordreSql.executeQuery("SELECT * FROM doublon WHERE id1='" +
-        triplet.code1 + "' and id2='" + triplet.code2 + "';")
+      val rs = ordreSql.executeQuery("SELECT * FROM doublon WHERE rowId1='" +
+        triplet._1 + "' and rowId2='" + triplet._2 + "';")
       if (!rs.next) {
         ordreSql.executeUpdate("insert into doublon values('" +
-        triplet.code1 + "','" + triplet.code2 + "'," + triplet.dist + ",'');")
+        triplet._1 + "','" + triplet._2 + "'," + triplet._3 + ",'');")
       }
       AppTiers.nbDoublonsEcrits += 1
     }
@@ -172,20 +174,20 @@ object Base {
   }
 
   def litTiers: Vecteur = {
-    val chaine = "select t1.listeConsolidation, t1.nomRS, t1.prenom, t2.cpVille, t2.numeroEtVoie, "+
+    val chaine = "select t1.rowId, t1.nomRS, t1.prenom, t2.cpVille, t2.numeroEtVoie, "+
                 "t2.complementAdresse, t1.compteParDefaut from debiteur t1, adresse t2 where t1.refAdresse = t2.rowid and " +
                 "t1.listeConsolidation in (select distinct listeConsolidation from debiteur);"
     val rs = ordreSql.executeQuery(chaine)
     var vect = Vector[Item]()
-    var item = Item("","")
+    var item = Item(0,"")
     breakable {
       AppTiers.nbDebiteursLus = 0
       while (rs.next) {
         if (Thread.interrupted) return Vecteur(vect)
-        item = Item(rs.getString(1), rs.getString(2) + " " + rs.getString(3) +
+        item = Item(rs.getInt(1), rs.getString(2) + " " + rs.getString(3) +
           rs.getString(4) + rs.getString(5) + rs.getString(6) + rs.getString(7))
         AppTiers.nbDebiteursLus += 1
-        if (item.code != "" && item.texte != "") vect = vect :+ item
+        if (item.rowId != 0 && item.texte != "") vect = vect :+ item
       }
     }
     Vecteur(vect)

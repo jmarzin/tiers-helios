@@ -4,6 +4,7 @@ import java.awt.{Color, Point}
 import java.io.File
 import javax.swing.{JOptionPane, JTextField}
 
+import scala.collection.mutable.ArrayBuffer
 import scala.swing.BorderPanel.Position._
 import scala.swing.event.ButtonClicked
 import scala.swing.{BorderPanel, BoxPanel, Button, ButtonGroup, Dimension, Label, MainFrame, Orientation, ProgressBar, RadioButton, SimpleSwingApplication}
@@ -22,14 +23,33 @@ object AppTiers extends SimpleSwingApplication {
   var plante = false
   var nbPiecesTraites = 0
   var nbDebiteursLus: Int = -1
-  var nbDebiteurDistances: Int = -1
-  var nbDebiteurDoublons: Int = -1
-  var nbDoublonsEcrits: Int = -1
+  var nbDoublonsEcrits: Int = 0
   var nbDoublonsAEcrire: Int = -1
   var nbPiecesCollocEnCours = 0
   var rangPieceCollocEnCours = 0
   var collocEnCours = ""
   var typePiece = 'titre
+
+  object paralleleDistance {
+    var nbDebiteurDistances: Int = 0
+    var tableau = Vector[(Integer,Integer,Integer)]()
+    def ajoute(vecteur: Vector[(Integer, Integer, Integer)]): Unit = {
+      this.synchronized {
+        tableau ++= vecteur
+        nbDebiteurDistances += 1
+      }
+    }
+  }
+
+  object parallelePaquet {
+    var nbDebiteurDoublons: Int = 0
+    def ajoute(vecteur: Vector[(Integer, Integer, Integer)]): Unit = {
+      this.synchronized {
+        nbDebiteurDoublons += 1
+        Base.sauve(vecteur)
+      }
+    }
+  }
 
   def afficheAvancementHelios(x: Any): String = x match {
     case 0 => " "
@@ -38,15 +58,15 @@ object AppTiers extends SimpleSwingApplication {
   }
 
   def afficheAvancementDoublons : (String,Integer) = {
-    if (nbDoublonsEcrits >= 0) {
+    if (nbDoublonsEcrits < 0) {
       ("" + nbDoublonsEcrits + "/" + nbDoublonsAEcrire + " propositions de doublons sauvegardées",
         nbDoublonsEcrits*100/nbDoublonsAEcrire)
-    } else if (nbDebiteurDoublons >= 0) {
-      ("propositions construites pour " + nbDebiteurDoublons + "/" + nbDebiteursLus + " débiteurs",
-        nbDebiteurDoublons*100/nbDebiteursLus)
-    } else if (nbDebiteurDistances >= 0) {
-      ("distances calculées pour " + nbDebiteurDistances + "/" + nbDebiteursLus + " débiteurs",
-        nbDebiteurDistances*100/nbDebiteursLus)
+    } else if (parallelePaquet.nbDebiteurDoublons > 0) {
+      ("propositions construites pour " + parallelePaquet.nbDebiteurDoublons + "/" + nbDebiteursLus + " débiteurs",
+        parallelePaquet.nbDebiteurDoublons*100/nbDebiteursLus)
+    } else if (paralleleDistance.nbDebiteurDistances > 0) {
+      ("distances calculées pour " + paralleleDistance.nbDebiteurDistances + "/" + nbDebiteursLus + " débiteurs",
+        paralleleDistance.nbDebiteurDistances*100/nbDebiteursLus)
     } else if (nbDebiteursLus >= 0) {
       ("" + nbDebiteursLus + " débiteurs lus",0)
     } else {
